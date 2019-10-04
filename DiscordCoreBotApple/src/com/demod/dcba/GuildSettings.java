@@ -5,41 +5,46 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class GuildSettings {
 	private static final String GUILDS_FILE = "guilds.json";
 
-	private static JSONObject guildsJson = null;
+	private static ObjectNode guildsJson = null;
 
-	public static synchronized JSONObject get(String guildId) {
+	public static synchronized ObjectNode get(String guildId) {
 		if (guildsJson == null) {
 			guildsJson = loadGuilds();
 		}
 
 		if (guildsJson.has(guildId)) {
-			return guildsJson.getJSONObject(guildId);
+			return (ObjectNode) guildsJson.path(guildId);
 		} else {
-			return new JSONObject();
+			return guildsJson.putObject(guildId);
 		}
 	}
 
-	private static JSONObject loadGuilds() {
+	private static ObjectNode loadGuilds() {
+		ObjectMapper objectMapper = new ObjectMapper();
 		try (Scanner scanner = new Scanner(new FileInputStream(GUILDS_FILE), "UTF-8")) {
 			scanner.useDelimiter("\\A");
-			return new JSONObject(scanner.next());
-		} catch (JSONException | IOException e) {
+			String string = scanner.next();
+			return (ObjectNode) objectMapper.readTree(string);
+		} catch (IOException e) {
 			System.out.println(GUILDS_FILE + " was not found!");
-			return new JSONObject();
+			return objectMapper.createObjectNode();
 		}
 	}
 
-	public static synchronized void save(String guildId, JSONObject guildJson) {
-		guildsJson.put(guildId, guildJson);
-
+	public static synchronized void save() {
+		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
 		try (FileWriter fw = new FileWriter(GUILDS_FILE)) {
-			fw.write(guildsJson.toString(2));
+			String string = objectWriter.writeValueAsString(guildsJson);
+			fw.write(string);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -9,19 +9,22 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.demod.dcba.CommandHandler.NoArgHandler;
 import com.demod.dcba.CommandHandler.SimpleResponse;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.common.util.concurrent.Uninterruptibles;
 
@@ -64,7 +67,7 @@ public class DiscordBot extends AbstractIdleService {
 
 	private ExceptionHandler exceptionHandler;
 
-	private final JSONObject configJson;
+	private final ObjectNode configJson;
 
 	private JDA jda;
 
@@ -194,14 +197,14 @@ public class DiscordBot extends AbstractIdleService {
 		return new CommandDefinition("setPrefix", true, "Change the prefix used by this bot.", new CommandHandler() {
 			@Override
 			public void handleCommand(MessageReceivedEvent event, String[] args) {
-				JSONObject guildJson = GuildSettings.get(event.getGuild().getId());
+				ObjectNode guildJson = GuildSettings.get(event.getGuild().getId());
 				if (args.length != 1) {
 					event.getChannel().sendMessage("Specify a prefix to be used. The prefix cannot include any spaces.")
 							.complete();
 				}
 				String prefix = args[0].trim();
 				guildJson.put(COMMAND_PREFIX, prefix);
-				GuildSettings.save(event.getGuild().getId(), guildJson);
+				GuildSettings.save();
 				event.getChannel().sendMessage("Prefix has been changed to `" + prefix + "`").complete();
 			}
 		});
@@ -238,9 +241,11 @@ public class DiscordBot extends AbstractIdleService {
 	private Optional<String> getEffectivePrefix(MessageReceivedEvent event) {
 		Optional<String> effectivePrefix = commandPrefix;
 		if (event.getChannelType() == ChannelType.TEXT) {
-			JSONObject guildJson = GuildSettings.get(event.getGuild().getId());
+			ObjectNode guildJson = GuildSettings.get(event.getGuild().getId());
 			if (guildJson.has(COMMAND_PREFIX)) {
-				effectivePrefix = Optional.of(guildJson.getString(COMMAND_PREFIX));
+				JsonNode jsonNode = guildJson.path(COMMAND_PREFIX);
+				assert jsonNode.isTextual();
+				effectivePrefix = Optional.of(jsonNode.textValue());
 			}
 		}
 		return effectivePrefix;
@@ -274,19 +279,25 @@ public class DiscordBot extends AbstractIdleService {
 		}
 
 		if (configJson.has("simple")) {
-			JSONObject secretJson = configJson.getJSONObject("simple");
-			secretJson.keySet().forEach(k -> {
-				String response = secretJson.getString(k);
+			ObjectNode secretJson = (ObjectNode) configJson.path("simple");
+			secretJson.fields().forEachRemaining(entry -> {
+				String k = entry.getKey();
+				JsonNode value = entry.getValue();
+				assert value.isTextual();
+				String response = value.textValue();
 				commands.put(k, new CommandDefinition(k, (SimpleResponse) (e -> response)));
 			});
 		}
 	}
 
-	private JSONObject loadConfig() {
+	private ObjectNode loadConfig() {
 		try (Scanner scanner = new Scanner(new FileInputStream("config.json"), "UTF-8")) {
 			scanner.useDelimiter("\\A");
-			return new JSONObject(scanner.next()).getJSONObject("discord");
-		} catch (JSONException | IOException e) {
+			String string = scanner.next();
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode config = objectMapper.readTree(string);
+			return (ObjectNode) config.path("discord");
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("################################");
 			System.err.println("Missing or bad config.json file!");
@@ -332,11 +343,15 @@ public class DiscordBot extends AbstractIdleService {
 		info.addTechnology("[JDA](https://github.com/DV8FromTheWorld/JDA)", Optional.of("3.0"), "Java Discord API");
 
 		if (configJson.has("command_prefix")) {
-			setCommandPrefix(Optional.of(configJson.getString("command_prefix")));
+			JsonNode commandPrefix = configJson.path("command_prefix");
+			assert commandPrefix.isTextual();
+			setCommandPrefix(Optional.of(commandPrefix.textValue()));
 		}
 
+		JsonNode botToken = configJson.path("bot_token");
+		assert botToken.isTextual();
 		jda = new JDABuilder(selfBot ? AccountType.CLIENT : AccountType.BOT)//
-				.setToken(configJson.getString("bot_token"))//
+				.setToken(botToken.textValue())//
 				.setEnableShutdownHook(false)//
 				.addEventListener(new ListenerAdapter() {
 					@Override
