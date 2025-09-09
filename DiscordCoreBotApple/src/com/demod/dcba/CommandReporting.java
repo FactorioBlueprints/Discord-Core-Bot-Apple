@@ -58,8 +58,8 @@ public class CommandReporting {
 	private final String authorIconURL;
 	private final Instant commandStart;
 
-	private String command = null;
-	private String imageURL = null;
+	private String command;
+	private String imageURL;
 	private Level level = Level.INFO;
 	private final List<Message> replies = new ArrayList<>();
 	private final List<String> warnings = new ArrayList<>();
@@ -68,7 +68,7 @@ public class CommandReporting {
 	private final List<Field> fields = new ArrayList<>();
 	private final List<String> replyImageAttachments = new ArrayList<>();
 	private final List<String> replyFileAttachments = new ArrayList<>();
-	private boolean suppressed = false;
+	private boolean suppressed;
 
 	public CommandReporting(String author, String authorIconURL, Instant commandStart) {
 		this.author = author;

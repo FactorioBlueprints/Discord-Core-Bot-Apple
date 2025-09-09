@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -68,6 +70,7 @@ import net.dv8tion.jda.api.utils.SplitUtil.Strategy;
 
 public class DiscordBot extends AbstractIdleService {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DiscordBot.class);
 	private static final String COMMAND_INFO = "info";
 	private static final String COMMAND_FEEDBACK = "feedback";
 
@@ -75,14 +78,14 @@ public class DiscordBot extends AbstractIdleService {
 
 	private final InfoDefinition info = new InfoDefinition();
 
-	private ExecutorService commandService = null;
+	private ExecutorService commandService;
 
 	private Optional<ReactionWatcher> reactionWatcher = Optional.empty();
 	private Optional<ButtonHandler> buttonHandler = Optional.empty();
 	private Optional<StringSelectHandler> stringSelectHandler = Optional.empty();
 	private Optional<MessageContextHandler> messageContextHandler = Optional.empty();
 	private Optional<PrivateMessageHandler> privateMessageHandler = Optional.empty();
-	private String messageContextLabel = null;
+	private String messageContextLabel;
 
 	private final JSONObject configJson;
 
@@ -90,7 +93,7 @@ public class DiscordBot extends AbstractIdleService {
 
 	private final LocalDateTime botStarted = LocalDateTime.now();
 
-	private Function<JDABuilder, JDABuilder> customSetup = null;
+	private Function<JDABuilder, JDABuilder> customSetup;
 
 	private Optional<String> reportingUserID = Optional.empty();
 	private Optional<String> reportingChannelID = Optional.empty();
@@ -344,9 +347,9 @@ public class DiscordBot extends AbstractIdleService {
 			return new JSONObject(scanner.next()).getJSONObject("discord");
 		} catch (JSONException | IOException e) {
 			e.printStackTrace();
-			System.err.println("################################");
-			System.err.println("Missing or bad config.json file!");
-			System.err.println("################################");
+			LOGGER.error("################################");
+			LOGGER.error("Missing or bad config.json file!");
+			LOGGER.error("################################");
 			System.exit(0);
 			return null;
 		}
@@ -492,7 +495,7 @@ public class DiscordBot extends AbstractIdleService {
 							try {
 								commandDefinition.getHandler().handleCommand(commandEvent);
 							} catch (Exception e) {
-								System.err.println("Uncaught Exception!");
+								LOGGER.error("Uncaught Exception!");
 								e.printStackTrace();
 								reporting.addException(e);
 							} finally {

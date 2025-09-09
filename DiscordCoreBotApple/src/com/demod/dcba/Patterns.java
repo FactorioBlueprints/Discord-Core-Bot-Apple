@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 /**
  * Commonly used regular expression patterns.
  */
-public class Patterns {
+public final class Patterns {
 	/**
 	 * Regular expression to match all IANA top-level domains. List accurate as
 	 * of 2011/07/18. List taken from:

@@ -12,11 +12,11 @@ import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
-public abstract class ParamPayloadEvent {
+public abstract class AbstractParamPayloadEvent {
 
 	private final CommandInteractionPayload payload;
 
-	protected ParamPayloadEvent(CommandInteractionPayload payload) {
+	protected AbstractParamPayloadEvent(CommandInteractionPayload payload) {
 		this.payload = payload;
 	}
 

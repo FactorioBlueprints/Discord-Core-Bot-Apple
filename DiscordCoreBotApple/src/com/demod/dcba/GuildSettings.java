@@ -14,7 +14,7 @@ public final class GuildSettings {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuildSettings.class);
 	private static final String GUILDS_FILE = "guilds.json";
 
-	private static JSONObject guildsJson = null;
+	private static JSONObject guildsJson;
 
 	public static synchronized JSONObject get(String guildId) {
 		if (guildsJson == null) {

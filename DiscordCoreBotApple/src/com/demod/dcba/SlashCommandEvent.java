@@ -20,7 +20,7 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-public class SlashCommandEvent extends ParamPayloadEvent implements EventReply {
+public class SlashCommandEvent extends AbstractParamPayloadEvent implements EventReply {
 
 	private final SlashCommandInteractionEvent event;
 	private final CommandReporting reporting;
@@ -28,7 +28,7 @@ public class SlashCommandEvent extends ParamPayloadEvent implements EventReply {
 	private final Interaction interaction;
 	private final boolean ephemeral;
 
-	private boolean replied = false;
+	private boolean replied;
 
 	public SlashCommandEvent(SlashCommandInteractionEvent event, CommandReporting reporting, InteractionHook hook,
 			boolean ephemeral) {

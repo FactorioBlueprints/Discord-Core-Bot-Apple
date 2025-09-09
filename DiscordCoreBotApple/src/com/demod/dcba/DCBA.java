@@ -11,6 +11,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 
 public final class DCBA {
 
+	private DCBA() {
+		// Utility class
+	}
+
 	public static interface Builder {
 		Builder addButtonHandler(ButtonHandler handler);
 
@@ -40,10 +44,10 @@ public final class DCBA {
 		Builder withCustomSetup(Function<JDABuilder, JDABuilder> customSetup);
 	}
 
-	private static abstract class BuilderDeferred implements Builder {
+	private abstract static class AbstractBuilderDeferred implements Builder {
 		BuilderImpl builder;
 
-		public BuilderDeferred(BuilderImpl builder) {
+		public AbstractBuilderDeferred(BuilderImpl builder) {
 			this.builder = builder;
 		}
 
@@ -279,9 +283,9 @@ public final class DCBA {
 		SlashCommandBuilder withParam(OptionType type, String name, String description);
 	}
 
-	private static class SlashCommandBuilderImpl extends BuilderDeferred implements SlashCommandBuilder {
+	private static class SlashCommandBuilderImpl extends AbstractBuilderDeferred implements SlashCommandBuilder {
 
-		SlashCommandDefinition command = null;
+		SlashCommandDefinition command;
 
 		public SlashCommandBuilderImpl(BuilderImpl builder) {
 			super(builder);

@@ -17,7 +17,7 @@ public class InfoDefinition {
 	private Optional<String> supportMessage = Optional.empty();
 	private Optional<String> version = Optional.empty();
 	private final List<String> technologies = new ArrayList<>();
-	private boolean allowInvite = false;
+	private boolean allowInvite;
 	private Permission[] invitePermissions;
 	private final List<Entry<String, String>> customFields = new ArrayList<>();
 

@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 
-public class AutoCompleteEvent extends ParamPayloadEvent {
+public class AutoCompleteEvent extends AbstractParamPayloadEvent {
 
 	private final CommandAutoCompleteInteractionEvent event;
 
